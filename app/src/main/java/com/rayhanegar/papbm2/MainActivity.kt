@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,8 +46,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyScreen() {
 
-    var text = remember { mutableStateOf("") }
-    var inputText = remember { mutableStateOf("") }
+    var nameText = remember { mutableStateOf("") }
+    var inputNameText = remember { mutableStateOf("") }
+    var nimText = remember { mutableStateOf("") }
+    var inputNimText = remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -52,19 +58,38 @@ fun MyScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = text.value,
+        Text(text = nameText.value,
             style = MaterialTheme.typography.titleLarge)
+        Text(text = nimText.value,
+            style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(16.dp))
         TextField(
-            value = inputText.value,
-            onValueChange = { inputText.value = it },  // Updating inputText value
-            label = { Text("What's Poppin?") }
+            value = inputNameText.value,
+            onValueChange = { inputNameText.value = it },
+            label = { Text("Your Name") },
+            leadingIcon = {
+                Icon(Icons.Outlined.Person, contentDescription = "Person icon")
+            }
+        )
+        TextField(
+            value = inputNimText.value,
+            onValueChange = { newValue ->
+                if (newValue.all { it.isDigit() } || newValue.isEmpty()) {
+                    inputNimText.value = newValue
+                }
+            },
+            label = { Text("Your NIM") },
+            leadingIcon = {
+                Icon(Icons.Outlined.Info, contentDescription = "NIM Info icon")
+            }
         )
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = {
-            text.value = inputText.value  // Assigning inputText value to text on click
-        }) {
-            Text(text = "Pop",
+            nameText.value = inputNameText.value
+            nimText.value = inputNimText.value
+        })
+        { Text(text = "Pop",
                 style = MaterialTheme.typography.labelSmall)
         }
     }
