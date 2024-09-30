@@ -1,6 +1,8 @@
 package com.rayhanegar.papbm2
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,35 +32,66 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.rayhanegar.papbm2.ui.theme.PapbM2Theme
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = Firebase.auth
         setContent {
             PapbM2Theme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyScreen()
+                    MyScreen(auth, loginOnClick = { email, password -> loginWithEmail(email, password) })
                 }
             }
         }
     }
+
+    private fun loginWithEmail(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Log.d("MainActivity", "Login Success, navigating to List Activity")
+                    navigateToListActivity()
+                } else {
+                    Log.e("MainActivity", "Login failed: ${task.exception?.message}")
+                    Toast.makeText(this, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+    }
+
+    private fun navigateToListActivity() {
+        try {
+            Log.d("MainActivity", "Navigating to ListActivity")
+            val intent = Intent(this, ListActivity::class.java)
+            startActivity(intent)
+            finish()
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Navigasi ke ListActivity gagal: ${e.message}")
+        }
+    }
+
 }
 
+
 @Composable
-fun MyScreen() {
+fun MyScreen(auth: FirebaseAuth, loginOnClick: (String, String) -> Unit) {
 
-    var nameText = remember { mutableStateOf("") }
-    var inputNameText = remember { mutableStateOf("") }
-    var nimText = remember { mutableStateOf("") }
-    var inputNimText = remember { mutableStateOf("") }
+    var emailText = remember { mutableStateOf("") }
+    var passwordText = remember { mutableStateOf("") }
 
-    val isButtonEnabled = remember(inputNameText, inputNimText) {
+    val isButtonEnabled = remember(emailText, passwordText) {
         derivedStateOf {
-            inputNameText.value.isNotBlank() && inputNimText.value.isNotBlank()
+            emailText.value.isNotBlank() && passwordText.value.isNotBlank()
         }
     }
 
@@ -71,59 +104,43 @@ fun MyScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = nameText.value,
+        Text(text = "Login Page",
             style = MaterialTheme.typography.titleLarge)
-        Text(text = nimText.value,
+        Text(text = "Use your email and password",
             style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(16.dp))
         TextField(
-            value = inputNameText.value,
-            onValueChange = { inputNameText.value = it },
-            label = { Text("Your Name") },
+            value = emailText.value,
+            onValueChange = { emailText.value = it },
+            label = { Text("Email") },
             leadingIcon = {
                 Icon(Icons.Outlined.Person, contentDescription = "Person icon")
             }
         )
         TextField(
-            value = inputNimText.value,
-            onValueChange = { newValue ->
-                if (newValue.all { it.isDigit() } || newValue.isEmpty()) {
-                    inputNimText.value = newValue
-                }
-            },
-            label = { Text("Your NIM") },
+            value = passwordText.value,
+            onValueChange = { passwordText.value = it },
+            label = { Text("Password") },
             leadingIcon = {
-                Icon(Icons.Outlined.Info, contentDescription = "NIM Info icon")
+                Icon(Icons.Outlined.Info, contentDescription = "Password icon")
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
-            nameText.value = inputNameText.value
-            nimText.value = inputNimText.value },
-            enabled = isButtonEnabled.value,
-            modifier = Modifier.pointerInput(Unit){
-                detectTapGestures(
-                    onLongPress = {
-                        Toast
-                            .makeText(
-                                context,
-                                "Hello, ${inputNameText.value}! Your NIM is ${inputNimText.value}", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                )
-            }
+        Button(
+            onClick = { loginOnClick(emailText.value, passwordText.value) },
+            enabled = isButtonEnabled.value
         )
-        { Text(text = "Pop",
+        { Text(text = "Login",
                 style = MaterialTheme.typography.labelSmall)
         }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    PapbM2Theme {
-        MyScreen()
-    }
 }
+//@Preview(showBackground = true)
+//@Composable
+//fun DefaultPreview() {
+//    PapbM2Theme {
+//        MyScreen(auth = Firebase.auth)
+//    }
+//}
