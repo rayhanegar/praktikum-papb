@@ -1,5 +1,6 @@
 package com.rayhanegar.papbm2
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,11 +19,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.rayhanegar.papbm2.data.model.local.TugasRepository
 import com.rayhanegar.papbm2.navigation.NavigationItem
 import com.rayhanegar.papbm2.navigation.Screen
 import com.rayhanegar.papbm2.screen.MatkulScreen
@@ -33,6 +37,7 @@ import com.rayhanegar.papbm2.ui.theme.PapbM2Theme
 class MainActivity : ComponentActivity() {
 
     private val githubProfileViewModel: GithubProfileViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         githubProfileViewModel.fetchGithubProfile("rayhanegar")
@@ -56,6 +61,9 @@ fun MainActivityScreen(
     viewModel: GithubProfileViewModel
 
 ) {
+
+    val context = LocalContext.current
+    val tugasRepository = remember { TugasRepository(context.applicationContext as Application) }
     Scaffold(
         bottomBar = {BottomBar(navController)},
         modifier = modifier
@@ -70,7 +78,7 @@ fun MainActivityScreen(
                 MatkulScreen()
             }
             composable(Screen.Tugas.route) {
-                TugasScreen()
+                TugasScreen(tugasRepository = tugasRepository)
             }
             composable(Screen.Profile.route) {
                 ProfileScreen(viewModel)
